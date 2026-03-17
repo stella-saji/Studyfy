@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Pastel Pink Light Mode */
+    --background: 350 30% 97%;
+    --foreground: 340 30% 15%;
+
+    --card: 350 40% 99%;
+    --card-foreground: 340 30% 15%;
+
+    --popover: 350 40% 99%;
+    --popover-foreground: 340 30% 15%;
+
+    --primary: 340 65% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 30% 90%;
+    --secondary-foreground: 340 30% 20%;
+
+    --muted: 340 20% 93%;
+    --muted-foreground: 340 15% 55%;
+
+    --accent: 350 35% 94%;
+    --accent-foreground: 340 30% 15%;
+
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 20% 90%;
+    --input: 340 20% 88%;
+    --ring: 340 65% 60%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 350 40% 99%;
+    --sidebar-foreground: 340 30% 15%;
+    --sidebar-primary: 340 65% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 350 35% 94%;
+    --sidebar-accent-foreground: 340 30% 15%;
+    --sidebar-border: 340 20% 90%;
+    --sidebar-ring: 340 65% 60%;
+
+    /* Custom tokens */
+    --ink: 340 30% 15%;
+    --surface: 350 40% 99%;
+    --warm-bg: 350 30% 97%;
+    --teal: 174 49% 39%; 
+    --teal-foreground: 0 0% 100%;
+    --burnt-orange: 16 78% 57%;
+    --muted-text: 243 11% 56%;
+  }
+
+  .dark {
+    /* Lighter Navy/Blue Dark Mode (inspired by reference) */
+    --background: 228 25% 16%;
+    --foreground: 220 20% 90%;
+
+    --card: 228 22% 20%;
+    --card-foreground: 220 20% 90%;
+
+    --popover: 228 22% 20%;
+    --popover-foreground: 220 20% 90%;
+
+    --primary: 225 70% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 228 20% 26%;
+    --secondary-foreground: 220 20% 90%;
+
+    --muted: 228 18% 24%;
+    --muted-foreground: 225 15% 55%;
+
+    --accent: 228 20% 26%;
+    --accent-foreground: 220 20% 90%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 18% 26%;
+    --input: 228 18% 26%;
+    --ring: 225 70% 60%;
+
+    --sidebar-background: 228 28% 13%;
+    --sidebar-foreground: 220 20% 85%;
+    --sidebar-primary: 225 70% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 228 22% 20%;
+    --sidebar-accent-foreground: 220 20% 90%;
+    --sidebar-border: 228 18% 22%;
+    --sidebar-ring: 225 70% 60%;
+
+    --ink: 228 28% 13%;
+    --surface: 228 22% 20%;
+    --warm-bg: 228 25% 16%;
+    --teal: 174 49% 55%;
+    --teal-foreground: 0 0% 100%;
+    --burnt-orange: 16 78% 65%;
+    --muted-text: 225 15% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
