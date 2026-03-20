@@ -18,7 +18,7 @@ import { UploadCard } from "@/components/UploadCard";
 import { MaterialCard } from "@/components/MaterialCard";
 import { PreviewModal } from "@/components/PreviewModal";
 import { DeleteModal } from "@/components/DeleteModal";
-import { loadData, addSubject, uploadMaterial, deleteMaterial, deleteSubject } from "@/lib/studyfy";
+import { loadData, addSubject, uploadMaterial, deleteMaterial, deleteSubject, TRUSTED_DOWNLOAD_ORIGINS } from "@/lib/studyfy";
 import { Material, StudyfyData, SortOption } from "@/types/studyfy";
 
 const EMPTY_DATA: StudyfyData = { subjects: [], materials: [] };
@@ -144,8 +144,7 @@ export default function Index() {
     if (!m.fileDownloadURL) return;
     try {
       const url = new URL(m.fileDownloadURL, window.location.origin);
-      const ALLOWED_ORIGINS = [window.location.origin];
-      if (!["http:", "https:"].includes(url.protocol) || !ALLOWED_ORIGINS.includes(url.origin)) {
+      if (!["http:", "https:"].includes(url.protocol) || !TRUSTED_DOWNLOAD_ORIGINS.has(url.origin)) {
         toast({
           title: "Download blocked",
           description: "This file's download URL is not trusted.",

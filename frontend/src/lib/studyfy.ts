@@ -16,6 +16,20 @@ const API_BASE = (() => {
   }
 })();
 
+export const TRUSTED_DOWNLOAD_ORIGINS = (() => {
+  const origins = new Set<string>();
+
+  if (typeof window !== "undefined") {
+    origins.add(window.location.origin);
+  }
+
+  if (API_BASE) {
+    origins.add(API_BASE);
+  }
+
+  return origins;
+})();
+
 function toApiUrl(path: string): string {
   if (!API_BASE) return path;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
@@ -25,6 +39,15 @@ function toApiUrl(path: string): string {
 async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const authHeaders = (() => {
+    try {
+      const token = localStorage.getItem("studyfy_auth_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    } catch {
+      return {};
+    }
+  })();
+  const contentTypeHeaders = typeof init?.body === "string" ? { "Content-Type": "application/json" } : {};
 
   try {
     const response = await fetch(toApiUrl(path), {
@@ -32,15 +55,8 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
       credentials: "include",
       signal: controller.signal,
       headers: {
-        "Content-Type": "application/json",
-        ...((() => {
-          try {
-            const token = localStorage.getItem("studyfy_auth_token");
-            return token ? { Authorization: `Bearer ${token}` } : {};
-          } catch {
-            return {};
-          }
-        })()),
+        ...contentTypeHeaders,
+        ...authHeaders,
         ...(init?.headers || {}),
       },
     });
