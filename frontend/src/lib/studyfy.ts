@@ -1,7 +1,16 @@
 import { StudyfyData } from "@/types/studyfy";
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL?.toString().trim();
-const API_BASE = rawBaseUrl && rawBaseUrl.length > 0 ? rawBaseUrl.replace(/\/$/, "") : "";
+const API_BASE = (() => {
+  if (!rawBaseUrl) return "";
+  try {
+    const url = new URL(rawBaseUrl);
+    if (!["http:", "https:"].includes(url.protocol)) return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+})();
 
 function toApiUrl(path: string): string {
   if (!API_BASE) return path;
@@ -10,20 +19,29 @@ function toApiUrl(path: string): string {
 }
 
 async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-  const response = await fetch(toApiUrl(path), {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Request failed with ${response.status}`);
+  try {
+    const response = await fetch(toApiUrl(path), {
+      ...init,
+      credentials: "include",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers || {}),
+      },
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed with ${response.status}`);
+    }
+
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return response;
 }
 
 export async function loadData(): Promise<StudyfyData> {
@@ -46,6 +64,7 @@ export async function uploadMaterial(
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", toApiUrl("/api/materials"));
+    xhr.withCredentials = true;
 
     xhr.upload.onprogress = (event) => {
       if (!event.lengthComputable || !onProgress) return;

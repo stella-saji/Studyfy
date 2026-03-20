@@ -78,8 +78,8 @@ export default function Index() {
   const handleDeleteSubject = useCallback((name: string) => {
     const run = async () => {
       try {
-        if (activeSubject === name) setActiveSubject(null);
         await deleteSubject(name);
+        if (activeSubject === name) setActiveSubject(null);
         await refreshData();
         toast({ title: "Subject deleted", description: `"${name}" and its materials were removed.` });
       } catch {
@@ -135,11 +135,34 @@ export default function Index() {
   }, [deletingMaterial, refreshData, toast]);
 
   const handleDownload = useCallback((m: Material) => {
-    const a = document.createElement("a");
-    a.href = m.fileDownloadURL;
-    a.download = m.filename;
-    a.click();
-  }, []);
+    if (!m.fileDownloadURL) return;
+
+    try {
+      const url = new URL(m.fileDownloadURL, window.location.origin);
+      if (!["http:", "https:"].includes(url.protocol)) {
+        toast({
+          title: "Download failed",
+          description: "Invalid download URL.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const a = document.createElement("a");
+      a.href = url.href;
+      a.download = m.filename;
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch {
+      toast({
+        title: "Download failed",
+        description: "Invalid download URL.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
 
   const filtered = useMemo(() => {
     let items = data.materials;
@@ -239,8 +262,10 @@ export default function Index() {
             </div>
 
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-muted-text">
-                <p className="text-sm font-medium">Loading materials...</p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-48 rounded-lg border bg-card animate-pulse" />
+                ))}
               </div>
             ) : filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-muted-text">

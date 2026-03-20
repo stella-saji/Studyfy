@@ -23,6 +23,7 @@ export function PreviewModal({ material, open, onClose, onDownload }: PreviewMod
   const ext = getFileExtension(material.filename).toLowerCase();
   const isImage = ["jpg", "jpeg", "png"].includes(ext);
   const isPdf = ext === "pdf";
+  const hasPreviewUrl = Boolean(material.filePreviewURL);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -33,15 +34,15 @@ export function PreviewModal({ material, open, onClose, onDownload }: PreviewMod
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-auto">
-          {isImage && (
+          {isImage && hasPreviewUrl && (
             <img src={material.filePreviewURL} alt={material.filename} className="mx-auto max-h-[60vh] rounded-md object-contain" />
           )}
-          {isPdf && (
+          {isPdf && hasPreviewUrl && (
             <iframe src={material.filePreviewURL} className="h-[60vh] w-full rounded-md" title={material.filename} />
           )}
-          {!isImage && !isPdf && (
+          {((!isImage && !isPdf) || !hasPreviewUrl) && (
             <div className="flex flex-col items-center justify-center py-16 text-muted-text">
-              <p className="text-sm">Preview not available for this file type.</p>
+              <p className="text-sm">Preview not available for this file.</p>
               <p className="text-xs mt-1">Download the file to open it.</p>
             </div>
           )}

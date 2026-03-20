@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 const ACCEPTED = ".pdf,.jpg,.jpeg,.png,.docx,.doc,.txt,.pptx,.xlsx";
 const ACCEPTED_TYPES = ["pdf", "jpg", "jpeg", "png", "docx", "doc", "txt", "pptx", "xlsx"];
+const MAX_FILE_BYTES = 50 * 1024 * 1024;
 
 interface UploadCardProps {
   subjects: string[];
@@ -32,6 +33,12 @@ export function UploadCard({ subjects, onUpload, uploading, progress, onInvalidF
       const ext = candidate.name.split(".").pop()?.toLowerCase() || "";
       if (!ACCEPTED_TYPES.includes(ext)) {
         const message = "File type not supported.";
+        if (onInvalidFile) onInvalidFile(message);
+        else window.alert(message);
+        return false;
+      }
+      if (candidate.size > MAX_FILE_BYTES) {
+        const message = "File exceeds the 50 MB limit.";
         if (onInvalidFile) onInvalidFile(message);
         else window.alert(message);
         return false;
