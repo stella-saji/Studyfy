@@ -1,12 +1,24 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:4000; frame-src 'self' blob:;">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- TODO: Set the document title to the name of your application -->
     <title>Studyfy – Study Material Manager</title>
     <meta name="description" content="Studyfy helps students organize, upload, and manage their study materials efficiently." />
     <meta name="author" content="Studyfy" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('studyfy_theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === 'dark' || (!saved && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">

@@ -38,7 +38,13 @@ export function PreviewModal({ material, open, onClose, onDownload }: PreviewMod
             <img src={material.filePreviewURL} alt={material.filename} className="mx-auto max-h-[60vh] rounded-md object-contain" />
           )}
           {isPdf && hasPreviewUrl && (
-            <iframe src={material.filePreviewURL} className="h-[60vh] w-full rounded-md" title={material.filename} />
+            <iframe
+              src={material.filePreviewURL}
+              sandbox="allow-scripts allow-same-origin"
+              referrerPolicy="no-referrer"
+              className="h-[60vh] w-full rounded-md"
+              title={material.filename}
+            />
           )}
           {((!isImage && !isPdf) || !hasPreviewUrl) && (
             <div className="flex flex-col items-center justify-center py-16 text-muted-text">

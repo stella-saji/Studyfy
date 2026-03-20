@@ -26,6 +26,7 @@ export function UploadCard({ subjects, onUpload, uploading, progress, onInvalidF
   const [subject, setSubject] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = useCallback(
@@ -57,11 +58,13 @@ export function UploadCard({ subjects, onUpload, uploading, progress, onInvalidF
   }, [validateFile]);
 
   const handleSubmit = () => {
-    if (file && subject) {
+    if (file && subject && !submitting) {
+      setSubmitting(true);
       onUpload(file, subject);
       setFile(null);
       setSubject("");
       if (inputRef.current) inputRef.current.value = "";
+      setTimeout(() => setSubmitting(false), 2000);
     }
   };
   return (
@@ -116,7 +119,7 @@ export function UploadCard({ subjects, onUpload, uploading, progress, onInvalidF
 
         <Button
           onClick={handleSubmit}
-          disabled={!file || !subject || uploading}
+          disabled={!file || !subject || uploading || submitting}
           className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Upload className="mr-2 h-4 w-4" />

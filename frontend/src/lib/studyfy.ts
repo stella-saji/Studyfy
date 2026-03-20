@@ -6,6 +6,10 @@ const API_BASE = (() => {
   try {
     const url = new URL(rawBaseUrl);
     if (!["http:", "https:"].includes(url.protocol)) return "";
+    if (import.meta.env.PROD && url.protocol === "http:") {
+      console.warn("[Studyfy] Insecure HTTP API URL blocked in production.");
+      return "";
+    }
     return url.origin;
   } catch {
     return "";
@@ -29,13 +33,22 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
+        ...((() => {
+          try {
+            const token = localStorage.getItem("studyfy_auth_token");
+            return token ? { Authorization: `Bearer ${token}` } : {};
+          } catch {
+            return {};
+          }
+        })()),
         ...(init?.headers || {}),
       },
     });
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(text || `Request failed with ${response.status}`);
+      console.error(`[Studyfy API Error] ${response.status}:`, text);
+      throw new Error(`Request failed. Please try again. (${response.status})`);
     }
 
     return response;
@@ -63,7 +76,18 @@ export async function uploadMaterial(
 ): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    const MAX_BYTES = 50 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      reject(new Error("File exceeds the 50 MB limit."));
+      return;
+    }
     xhr.open("POST", toApiUrl("/api/materials"));
+    try {
+      const token = localStorage.getItem("studyfy_auth_token");
+      if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    } catch {
+      // Ignore localStorage access errors (privacy mode or storage restrictions).
+    }
     xhr.withCredentials = true;
 
     xhr.upload.onprogress = (event) => {

@@ -27,6 +27,7 @@ export default function Index() {
   const [data, setData] = useState<StudyfyData>(EMPTY_DATA);
   const [activeSubject, setActiveSubject] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("newest");
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -58,6 +59,11 @@ export default function Index() {
     };
     void run();
   }, [refreshData, toast]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleAddSubject = useCallback((name: string) => {
     const run = async () => {
@@ -136,18 +142,17 @@ export default function Index() {
 
   const handleDownload = useCallback((m: Material) => {
     if (!m.fileDownloadURL) return;
-
     try {
       const url = new URL(m.fileDownloadURL, window.location.origin);
-      if (!["http:", "https:"].includes(url.protocol)) {
+      const ALLOWED_ORIGINS = [window.location.origin];
+      if (!["http:", "https:"].includes(url.protocol) || !ALLOWED_ORIGINS.includes(url.origin)) {
         toast({
-          title: "Download failed",
-          description: "Invalid download URL.",
+          title: "Download blocked",
+          description: "This file's download URL is not trusted.",
           variant: "destructive",
         });
         return;
       }
-
       const a = document.createElement("a");
       a.href = url.href;
       a.download = m.filename;
@@ -167,7 +172,7 @@ export default function Index() {
   const filtered = useMemo(() => {
     let items = data.materials;
     if (activeSubject) items = items.filter((m) => m.subject === activeSubject);
-    if (search) items = items.filter((m) => m.filename.toLowerCase().includes(search.toLowerCase()));
+    if (debouncedSearch) items = items.filter((m) => m.filename.toLowerCase().includes(debouncedSearch.toLowerCase()));
     switch (sort) {
       case "newest": return [...items].sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
       case "oldest": return [...items].sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime());
@@ -175,7 +180,7 @@ export default function Index() {
       case "name-desc": return [...items].sort((a, b) => b.filename.localeCompare(a.filename));
       default: return items;
     }
-  }, [data.materials, activeSubject, search, sort]);
+  }, [data.materials, activeSubject, debouncedSearch, sort]);
 
   return (
     <div className="flex min-h-screen flex-col">
