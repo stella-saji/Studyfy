@@ -99,26 +99,44 @@ export default function Index() {
     void run();
   }, [activeSubject, refreshData, toast]);
 
-  const handleUpload = useCallback((file: File, subject: string) => {
-    const run = async () => {
-      setUploading(true);
-      setProgress(0);
-      try {
-        await uploadMaterial(file, subject, setProgress);
-        await refreshData();
-        toast({ title: "Upload successful", description: `${file.name} has been added.` });
-      } catch {
+  const handleUpload = useCallback(async (files: File[], subject: string): Promise<File[]> => {
+    setUploading(true);
+    setProgress(0);
+    try {
+      const result = await uploadMaterial(files, subject, setProgress);
+      await refreshData();
+
+      const failedNames = new Set(result.failed.map((item) => item.filename));
+      const failedFiles = files.filter((file) => failedNames.has(file.name));
+      const successCount = files.length - failedFiles.length;
+
+      if (failedFiles.length === 0) {
         toast({
-          title: "Upload failed",
-          description: "Could not upload the file.",
+          title: "Upload successful",
+          description: files.length === 1
+            ? `${files[0].name} has been added.`
+            : `${files.length} files have been added.`,
+        });
+      } else {
+        toast({
+          title: "Upload partially completed",
+          description: `${successCount} uploaded, ${failedFiles.length} failed. Retry failed files.`,
           variant: "destructive",
         });
-      } finally {
-        setUploading(false);
-        setProgress(0);
       }
-    };
-    void run();
+
+      return failedFiles;
+    } catch {
+      toast({
+        title: "Upload failed",
+        description: "Could not upload the selected files.",
+        variant: "destructive",
+      });
+      return files;
+    } finally {
+      setUploading(false);
+      setProgress(0);
+    }
   }, [refreshData, toast]);
 
   const handleDelete = useCallback(() => {

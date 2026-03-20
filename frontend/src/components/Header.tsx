@@ -9,6 +9,7 @@ interface HeaderProps {
 
 export function Header({ data }: HeaderProps) {
   const [dark, setDark] = useState(false);
+  const [logoLoadFailed, setLogoLoadFailed] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("studyfy_theme");
@@ -27,9 +28,18 @@ export function Header({ data }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center justify-between bg-ink px-6">
-      <h1 className="text-xl font-bold tracking-tight text-primary-foreground font-display">
-        Studyfy<span className="text-burnt-orange">.</span>
-      </h1>
+      {!logoLoadFailed ? (
+        <img
+          src="/studyfy-logo.png"
+          alt="Studyfy"
+          className="h-9 w-auto"
+          onError={() => setLogoLoadFailed(true)}
+        />
+      ) : (
+        <h1 className="text-xl font-bold tracking-tight text-primary-foreground font-display">
+          Studyfy<span className="text-burnt-orange">.</span>
+        </h1>
+      )}
       <div className="flex items-center gap-3">
         <span className="rounded-full bg-primary-foreground/10 px-3 py-1 text-xs font-medium text-primary-foreground">
           {data.materials.length} files

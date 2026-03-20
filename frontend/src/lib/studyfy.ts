@@ -1,5 +1,14 @@
 import { StudyfyData } from "@/types/studyfy";
 
+export interface UploadFailure {
+  filename: string;
+  error: string;
+}
+
+export interface UploadBatchResult {
+  failed: UploadFailure[];
+}
+
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL?.toString().trim();
 const API_BASE = (() => {
   if (!rawBaseUrl) return "";
@@ -86,15 +95,19 @@ export async function addSubject(name: string): Promise<void> {
 }
 
 export async function uploadMaterial(
-  file: File,
+  files: File[],
   subject: string,
   onProgress?: (percent: number) => void,
-): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
+): Promise<UploadBatchResult> {
+  return new Promise<UploadBatchResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const MAX_BYTES = 50 * 1024 * 1024;
-    if (file.size > MAX_BYTES) {
-      reject(new Error("File exceeds the 50 MB limit."));
+    if (files.length === 0) {
+      reject(new Error("At least one file is required."));
+      return;
+    }
+    if (files.some((file) => file.size > MAX_BYTES)) {
+      reject(new Error("One or more files exceed the 50 MB limit."));
       return;
     }
     xhr.open("POST", toApiUrl("/api/materials"));
@@ -115,7 +128,12 @@ export async function uploadMaterial(
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         onProgress?.(100);
-        resolve();
+        try {
+          const parsed = JSON.parse(xhr.responseText || "{}") as { failed?: UploadFailure[] };
+          resolve({ failed: Array.isArray(parsed.failed) ? parsed.failed : [] });
+        } catch {
+          resolve({ failed: [] });
+        }
         return;
       }
       reject(new Error(xhr.responseText || `Upload failed with ${xhr.status}`));
@@ -123,7 +141,9 @@ export async function uploadMaterial(
 
     const formData = new FormData();
     formData.append("subject", subject);
-    formData.append("file", file);
+    for (const file of files) {
+      formData.append("files", file);
+    }
     xhr.send(formData);
   });
 }

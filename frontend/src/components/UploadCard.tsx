@@ -16,7 +16,7 @@ const MAX_FILE_BYTES = 50 * 1024 * 1024;
 
 interface UploadCardProps {
   subjects: string[];
-  onUpload: (file: File, subject: string) => void;
+  onUpload: (files: File[], subject: string) => Promise<File[]>;
   uploading: boolean;
   progress: number;
   onInvalidFile?: (message: string) => void;
@@ -24,7 +24,8 @@ interface UploadCardProps {
 
 export function UploadCard({ subjects, onUpload, uploading, progress, onInvalidFile }: UploadCardProps) {
   const [subject, setSubject] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [hasFailedBatch, setHasFailedBatch] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,19 +49,30 @@ export function UploadCard({ subjects, onUpload, uploading, progress, onInvalidF
     [onInvalidFile],
   );
 
+  const validateFiles = useCallback((selectedFiles: File[]) => {
+    for (const selectedFile of selectedFiles) {
+      if (!validateFile(selectedFile)) return false;
+    }
+    return true;
+  }, [validateFile]);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    const f = e.dataTransfer.files[0];
-    if (!f || !validateFile(f)) return;
-    setFile(f);
-  }, [validateFile]);
+    const dropped = Array.from(e.dataTransfer.files || []);
+    if (dropped.length === 0 || !validateFiles(dropped)) return;
+    setFiles(dropped);
+    setHasFailedBatch(false);
+  }, [validateFiles]);
 
-  const handleSubmit = () => {
-    if (file && subject && !uploading) {
-      onUpload(file, subject);
-      setFile(null);
-      setSubject("");
+  const handleSubmit = async () => {
+    if (files.length > 0 && subject && !uploading) {
+      const failedFiles = await onUpload(files, subject);
+      setFiles(failedFiles);
+      setHasFailedBatch(failedFiles.length > 0);
+      if (failedFiles.length === 0) {
+        setSubject("");
+      }
       if (inputRef.current) inputRef.current.value = "";
     }
   };
@@ -91,36 +103,47 @@ export function UploadCard({ subjects, onUpload, uploading, progress, onInvalidF
         >
           <FileUp className="mb-1 h-5 w-5 text-muted-text" />
           <span className="text-xs text-muted-text">
-            {file ? file.name : "Drop file or click to browse"}
+            {files.length === 0
+              ? "Drop files or click to browse"
+              : files.length === 1
+                ? files[0].name
+                : `${files.length} files selected`}
           </span>
           <input
             ref={inputRef}
             type="file"
+            multiple
             accept={ACCEPTED}
             className="hidden"
             onChange={(e) => {
-              const selected = e.target.files?.[0];
-              if (!selected) {
-                setFile(null);
+              const selected = Array.from(e.target.files || []);
+              if (selected.length === 0) {
+                setFiles([]);
                 return;
               }
-              if (!validateFile(selected)) {
+              if (!validateFiles(selected)) {
                 e.target.value = "";
-                setFile(null);
+                setFiles([]);
+                setHasFailedBatch(false);
                 return;
               }
-              setFile(selected);
+              setFiles(selected);
+              setHasFailedBatch(false);
             }}
           />
         </div>
 
         <Button
           onClick={handleSubmit}
-          disabled={!file || !subject || uploading}
+          disabled={files.length === 0 || !subject || uploading}
           className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Upload className="mr-2 h-4 w-4" />
-          {uploading ? "Uploading..." : "Upload"}
+          {uploading
+            ? "Uploading..."
+            : hasFailedBatch
+              ? `Retry Failed (${files.length})`
+              : "Upload"}
         </Button>
       </div>
 

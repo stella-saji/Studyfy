@@ -22,7 +22,6 @@ export function PreviewModal({ material, open, onClose, onDownload }: PreviewMod
 
   const ext = getFileExtension(material.filename).toLowerCase();
   const isImage = ["jpg", "jpeg", "png"].includes(ext);
-  const isPdf = ext === "pdf";
   const hasPreviewUrl = Boolean(material.filePreviewURL);
 
   return (
@@ -37,20 +36,26 @@ export function PreviewModal({ material, open, onClose, onDownload }: PreviewMod
           {isImage && hasPreviewUrl && (
             <img src={material.filePreviewURL} alt={material.filename} className="mx-auto max-h-[60vh] rounded-md object-contain" />
           )}
-          {isPdf && hasPreviewUrl && (
+          {!isImage && hasPreviewUrl && (
             <iframe
               src={material.filePreviewURL}
-              sandbox="allow-same-origin"
+              sandbox="allow-scripts allow-same-origin"
               referrerPolicy="no-referrer"
               className="h-[60vh] w-full rounded-md"
               title={material.filename}
             />
           )}
-          {((!isImage && !isPdf) || !hasPreviewUrl) && (
+          {!hasPreviewUrl && (
             <div className="flex flex-col items-center justify-center py-16 text-muted-text">
               <p className="text-sm">Preview not available for this file.</p>
               <p className="text-xs mt-1">Download the file to open it.</p>
             </div>
+          )}
+
+          {!isImage && hasPreviewUrl && (
+            <p className="mt-3 text-xs text-muted-text">
+              If preview does not render for this file type, use Download to open it locally.
+            </p>
           )}
         </div>
         <DialogFooter>
