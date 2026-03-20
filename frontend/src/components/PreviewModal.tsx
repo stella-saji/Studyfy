@@ -40,7 +40,7 @@ export function PreviewModal({ material, open, onClose, onDownload }: PreviewMod
           {isPdf && hasPreviewUrl && (
             <iframe
               src={material.filePreviewURL}
-              sandbox="allow-scripts allow-same-origin"
+              sandbox="allow-same-origin"
               referrerPolicy="no-referrer"
               className="h-[60vh] w-full rounded-md"
               title={material.filename}
