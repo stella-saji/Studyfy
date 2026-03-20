@@ -4,7 +4,8 @@ export interface Material {
   subject: string;
   uploadDate: string;
   size: number;
-  fileDataURL: string;
+  filePreviewURL: string;
+  fileDownloadURL: string;
 }
 
 export interface StudyfyData {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Search, FolderOpen, SlidersHorizontal, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,14 +18,17 @@ import { UploadCard } from "@/components/UploadCard";
 import { MaterialCard } from "@/components/MaterialCard";
 import { PreviewModal } from "@/components/PreviewModal";
 import { DeleteModal } from "@/components/DeleteModal";
-import { loadData, addSubject, addMaterial, deleteMaterial, deleteSubject } from "@/lib/studyfy";
+import { loadData, addSubject, uploadMaterial, deleteMaterial, deleteSubject } from "@/lib/studyfy";
 import { Material, StudyfyData, SortOption } from "@/types/studyfy";
 
+const EMPTY_DATA: StudyfyData = { subjects: [], materials: [] };
+
 export default function Index() {
-  const [data, setData] = useState<StudyfyData>(() => loadData());
+  const [data, setData] = useState<StudyfyData>(EMPTY_DATA);
   const [activeSubject, setActiveSubject] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("newest");
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
@@ -34,64 +37,106 @@ export default function Index() {
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
-  const handleAddSubject = useCallback((name: string) => {
-    setData((prev) => addSubject(prev, name));
+  const refreshData = useCallback(async () => {
+    const next = await loadData();
+    setData(next);
   }, []);
 
-  const handleDeleteSubject = useCallback((name: string) => {
-    if (activeSubject === name) setActiveSubject(null);
-    setData((prev) => deleteSubject(prev, name));
-    toast({ title: "Subject deleted", description: `"${name}" and its materials were removed.` });
-  }, [activeSubject, toast]);
-
-  const handleUpload = useCallback((file: File, subject: string) => {
-    setUploading(true);
-    setProgress(0);
-
-    const reader = new FileReader();
-    reader.onprogress = (e) => {
-      if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
-    };
-    reader.onload = () => {
-      const material: Material = {
-        id: crypto.randomUUID(),
-        filename: file.name,
-        subject,
-        uploadDate: new Date().toISOString(),
-        size: file.size,
-        fileDataURL: reader.result as string,
-      };
+  useEffect(() => {
+    const run = async () => {
       try {
-        setData((prev) => addMaterial(prev, material));
-        toast({ title: "Upload successful", description: `${file.name} has been added.` });
+        await refreshData();
       } catch {
         toast({
-          title: "Storage full",
-          description: "Delete some files to free space.",
+          title: "Server unavailable",
+          description: "Could not load materials from backend.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    void run();
+  }, [refreshData, toast]);
+
+  const handleAddSubject = useCallback((name: string) => {
+    const run = async () => {
+      try {
+        await addSubject(name);
+        await refreshData();
+      } catch {
+        toast({
+          title: "Could not add subject",
+          description: "Try a different name or try again.",
           variant: "destructive",
         });
       }
-      setUploading(false);
-      setProgress(0);
     };
-    reader.onerror = () => {
-      setUploading(false);
-      setProgress(0);
-      toast({ title: "Upload failed", description: "Could not read the file.", variant: "destructive" });
+    void run();
+  }, [refreshData, toast]);
+
+  const handleDeleteSubject = useCallback((name: string) => {
+    const run = async () => {
+      try {
+        if (activeSubject === name) setActiveSubject(null);
+        await deleteSubject(name);
+        await refreshData();
+        toast({ title: "Subject deleted", description: `"${name}" and its materials were removed.` });
+      } catch {
+        toast({
+          title: "Delete failed",
+          description: "Could not delete subject.",
+          variant: "destructive",
+        });
+      }
     };
-    reader.readAsDataURL(file);
-  }, [toast]);
+    void run();
+  }, [activeSubject, refreshData, toast]);
+
+  const handleUpload = useCallback((file: File, subject: string) => {
+    const run = async () => {
+      setUploading(true);
+      setProgress(0);
+      try {
+        await uploadMaterial(file, subject, setProgress);
+        await refreshData();
+        toast({ title: "Upload successful", description: `${file.name} has been added.` });
+      } catch {
+        toast({
+          title: "Upload failed",
+          description: "Could not upload the file.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploading(false);
+        setProgress(0);
+      }
+    };
+    void run();
+  }, [refreshData, toast]);
 
   const handleDelete = useCallback(() => {
     if (!deletingMaterial) return;
-    setData((prev) => deleteMaterial(prev, deletingMaterial.id));
-    toast({ title: "File deleted", description: `${deletingMaterial.filename} was removed.` });
-    setDeletingMaterial(null);
-  }, [deletingMaterial, toast]);
+    const run = async () => {
+      try {
+        await deleteMaterial(deletingMaterial.id);
+        await refreshData();
+        toast({ title: "File deleted", description: `${deletingMaterial.filename} was removed.` });
+      } catch {
+        toast({
+          title: "Delete failed",
+          description: "Could not delete file.",
+          variant: "destructive",
+        });
+      }
+      setDeletingMaterial(null);
+    };
+    void run();
+  }, [deletingMaterial, refreshData, toast]);
 
   const handleDownload = useCallback((m: Material) => {
     const a = document.createElement("a");
-    a.href = m.fileDataURL;
+    a.href = m.fileDownloadURL;
     a.download = m.filename;
     a.click();
   }, []);
@@ -189,10 +234,15 @@ export default function Index() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search files..."
                 className="pl-9"
+                disabled={loading}
               />
             </div>
 
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-text">
+                <p className="text-sm font-medium">Loading materials...</p>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-muted-text">
                 <FolderOpen className="mb-3 h-12 w-12" />
                 <p className="text-sm font-medium">
