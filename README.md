@@ -1,136 +1,102 @@
-📚 Studyfy
+# 📖 Studyfy  
+**Your smart companion for organized, focused, and efficient learning.** 
 
-Your smart companion for organized, focused, and efficient learning.
+### 🌟 Overview  
 
-🌟 Overview
+**Studyfy** is a productivity-focused learning platform designed to help students manage study resources, stay organized, and maintain consistent progress. It combines a distraction-free interface with powerful backend features to streamline the learning experience.  
 
-Studyfy is a productivity-focused learning platform designed to help students manage their study resources, stay organized, and maintain consistent progress. It combines simplicity with powerful features to create a distraction-free learning experience.
+Whether you're preparing for exams or building a daily learning habit, **Studyfy** keeps your materials accessible and your focus sharp.  
 
-Whether you're preparing for exams or just trying to stay consistent, Studyfy helps you stay on track.
+---
 
+### ✨ Features  
 
-✨ Features:
+* **Organized Resources:** Upload, store, and manage notes in a centralized location.  
+* **Focus-Friendly UI:** A clean, minimal interface designed to reduce cognitive load.  
+* **Quick Search:** Instant access to your materials with optimized search.  
+* **Secure Cloud Storage:** Powered by **Supabase** for reliable data handling.  
+* **User Authentication:** Secure login systems to keep user-specific data private.  
+* **Progress Tracking:** (Upcoming) Visualize your learning journey over time.  
 
+---
 
-📂 Organized Study Resources:
+### 🛠️ Tech Stack  
 
-Upload, store, and manage notes in one place.
+| Category | Technology |  
+| :--- | :--- |  
+| **Frontend** | React / Next.js |  
+| **Backend** | Supabase |  
+| **Database** | PostgreSQL |  
+| **Storage** | Supabase Buckets |  
+| **Version Control** | Git & GitHub |  
 
-⏱️ Focus-Friendly Interface:
+---
 
-Clean UI to reduce distractions and improve concentration.
+### 🚀 Getting Started  
 
-🔍 Quick Access & Search:
-
-Find your materials instantly.
-
-☁️ Cloud Storage (Supabase):
-
-Securely store and access your data anytime.
-
-📊 Progress Tracking (Optional/Future):
-
-Keep track of your learning journey.
-
-🔐 Authentication System:
-
-Secure login and user-specific data handling.
-
-
-🛠️ Tech Stack:
-
-
-Frontend: (Add your framework — e.g., React / Next.js / HTML-CSS-JS)
-
-Backend: Supabase
-
-Database: PostgreSQL (via Supabase)
-
-Storage: Supabase Buckets
-
-Version Control: Git & GitHub
-
-
-🚀 Getting Started
-
-
-1️⃣ Clone the repository:
+**1. Clone the repository**
 
 git clone https://github.com/your-username/studyfy.git
+
 cd studyfy
 
 
-2️⃣ Install dependencies:
+**2. Install dependencies** 
 
 npm install
 
 
-3️⃣ Setup Environment Variables:
+**3. Setup Environment Variables** 
 
-Create a .env file and add:
+Create a `.env` file in the root directory and add your credentials:  
+
 SUPABASE_URL=your_project_url
+
 SUPABASE_ANON_KEY=your_anon_key
 
 
-4️⃣ Run the project:
+**4. Run the project**
 
 npm run dev
 
 
-📁 Project Structure:
+---
 
+### 📁 Project Structure  
+
+```
 studyfy/
-│── src/
+├── src/
 │   ├── components/
 │   ├── pages/
 │   ├── utils/
 │   └── services/
-│
-│── public/
-│── .env
-│── package.json
-│── README.md
+├── public/
+├── .env
+├── package.json
+└── README.md
+```
 
+---
 
+### 🤝 Contributing  
 
-Contributions are welcome!
+Contributions make the open-source community an amazing place to learn and create.  
 
-Fork the repo
+1. **Fork** the Project.  
+2. **Create** your Feature Branch (`git checkout -b feature/AmazingFeature`).  
+3. **Commit** your Changes (`git commit -m 'Add some AmazingFeature'`).  
+4. **Push** to the Branch (`git push origin feature/AmazingFeature`).  
+5. **Open** a Pull Request.  
 
-Create your feature branch
+---
 
-Commit your changes
+### 📜 License  
 
-Push to the branch
+Distributed under the **MIT License**. See `LICENSE` for more information.  
 
-Open a Pull Request
+> **Inspiration:** “Studying is hard… but staying organized shouldn’t be.”  
 
+**Author:** Stella Saji  
+*Passionate about building tools that make learning easier.*
 
-📜 License:
-
-This project is licensed under the MIT License.
-
-
-💡 Inspiration:
-
-Built to solve a simple problem:
-
-“Studying is hard… but staying organized shouldn’t be.”
-
-
-👤 Author
-
-Stella Saji
-
-💬 Passionate about building tools that make learning easier.
-
-
-⭐ Support:
-
-If you like this project:
-
-⭐ Star the repo
-
-🍴 Fork it
-
-📢 Share it
