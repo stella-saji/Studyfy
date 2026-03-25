@@ -9,7 +9,7 @@ Whether you're preparing for exams or building a daily learning habit, **Studyfy
 
 ---
 
-### ✨ Features  
+### ✨ Features    
 
 * **Organized Resources:** Upload, store, and manage notes in a centralized location.  
 * **Focus-Friendly UI:** A clean, minimal interface designed to reduce cognitive load.  
